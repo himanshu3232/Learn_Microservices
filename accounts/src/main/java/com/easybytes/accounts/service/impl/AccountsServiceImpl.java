@@ -12,6 +12,7 @@ import com.easybytes.accounts.service.IAccountsService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
@@ -30,10 +31,13 @@ public class AccountsServiceImpl implements IAccountsService {
         Optional<Customer> optionalCustomer = customerRepository
                 .findByMobileNumber(customerDto.getMobileNumber());
         if(optionalCustomer.isPresent())
-            throw new CustomerAlreadyExistsException("Customer already registered with the mobile number"
+            throw new CustomerAlreadyExistsException("Customer already registered with the mobile number: "
             + optionalCustomer.get().getMobileNumber());
 
+        customer.setCreatedAt(LocalDateTime.now());
+        customer.setCreatedBy(customerDto.getName());
         Customer savedCustomer = customerRepository.save(customer);
+
         accountsRepository.save(createNewAccount(savedCustomer));
     }
 
@@ -45,6 +49,8 @@ public class AccountsServiceImpl implements IAccountsService {
         account.setAccountNumber(randomAccNum);
         account.setAccountType(AccountConstants.SAVINGS);
         account.setBranchAddress(AccountConstants.ADDRESS);
+        account.setCreatedBy(customer.getCreatedBy());
+        account.setCreatedAt(customer.getCreatedAt());
         return account;
     }
 }
